@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مشروع الكشف عن معدات الوقاية الشخصية | AI PPE Detection</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --secondary: #f97316;
+            --dark: #0f172a;
+            --glass: rgba(15, 23, 42, 0.8);
+        }
+
+        body {
+            font-family: 'Tajawal', 'Outfit', sans-serif;
+            background-color: var(--dark);
+            color: #f8fafc;
+            overflow-x: hidden;
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 50%, #2563eb 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-bg {
+            background: linear-gradient(to bottom, rgba(15, 23, 42, 0.6), var(--dark)), url('/static/hero.png');
+            background-size: cover;
+            background-position: center;
+        }
+
+        .glass-card {
+            background: rgba(30, 41, 59, 0.4);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--primary);
+            box-shadow: 0 10px 30px -10px rgba(59, 130, 246, 0.3);
+        }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s ease-out;
+        }
+
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .nav-link {
+            position: relative;
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--primary);
+            transition: width 0.3s;
+        }
+
+        .nav-link:hover::after {
+            width: 100%;
+        }
+
+        /* English sections font override */
+        .en {
+            font-family: 'Outfit', sans-serif;
+            direction: ltr;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="fixed w-full z-50 glass-card border-none py-4 px-6 md:px-12 flex justify-between items-center backdrop-blur-md">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center shadow-lg shadow-blue-900/50">
+                <i class="fa-solid fa-shield-halved text-white text-xl"></i>
+            </div>
+            <span class="text-xl font-bold tracking-tight">PPE <span class="text-blue-500">Vision</span></span>
+        </div>
+        
+        <div class="hidden md:flex gap-8 items-center">
+            <a href="#features" class="nav-link font-medium opacity-80 hover:opacity-100 transition-opacity">المميزات</a>
+            <a href="#tech" class="nav-link font-medium opacity-80 hover:opacity-100 transition-opacity">التقنيات</a>
+            <a href="/monitor" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-full font-bold transition-all transform hover:scale-105 shadow-lg shadow-blue-600/30">
+                تشغيل النظام
+            </a>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="min-h-screen flex items-center relative hero-bg pt-20">
+        <div class="container mx-auto px-6 md:px-12 grid md:grid-cols-2 gap-12 items-center">
+            <div class="reveal">
+                <h2 class="text-blue-500 font-bold mb-4 tracking-widest uppercase text-sm">نظام الذكاء الاصطناعي للأمن والسلامة</h2>
+                <h1 class="text-5xl md:text-7xl font-bold leading-tight mb-6">
+                    مراقبة <span class="gradient-text">الوقاية الشخصية</span> في الوقت الفعلي
+                </h1>
+                <p class="text-xl text-gray-400 mb-8 leading-relaxed max-w-xl">
+                    حل متقدم يستخدم تقنيات YOLOv8 للكشف عن الخوذات والسترات الواقية بدقة عالية، مما يضمن بيئة عمل آمنة ومتوافقة مع المعايير.
+                </p>
+                <div class="flex flex-wrap gap-4">
+                    <a href="/monitor" class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-xl font-bold text-lg transition-all flex items-center gap-3 group">
+                        <span>ابدأ العرض المباشر</span>
+                        <i class="fa-solid fa-play text-sm group-hover:translate-x-1 transition-transform"></i>
+                    </a>
+                    <a href="#features" class="glass-card px-8 py-4 rounded-xl font-bold text-lg border border-gray-700 hover:bg-white/5 transition-all">
+                        اكتشف المزيد
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Ribbon -->
+    <div class="bg-blue-600/10 border-y border-blue-500/20 py-10">
+        <div class="container mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+            <div class="reveal">
+                <div class="text-4xl font-bold text-blue-400 mb-1">98%</div>
+                <div class="text-sm text-gray-400 uppercase tracking-widest">دقة الكشف</div>
+            </div>
+            <div class="reveal" style="transition-delay: 0.1s">
+                <div class="text-4xl font-bold text-blue-400 mb-1">< 30ms</div>
+                <div class="text-sm text-gray-400 uppercase tracking-widest">سرعة المعالجة</div>
+            </div>
+            <div class="reveal" style="transition-delay: 0.2s">
+                <div class="text-4xl font-bold text-blue-400 mb-1">24/7</div>
+                <div class="text-sm text-gray-400 uppercase tracking-widest">مراقبة مستمرة</div>
+            </div>
+            <div class="reveal" style="transition-delay: 0.3s">
+                <div class="text-4xl font-bold text-blue-400 mb-1">CSV</div>
+                <div class="text-sm text-gray-400 uppercase tracking-widest">تقارير آلية</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Features -->
+    <section id="features" class="py-24 bg-slate-900/50">
+        <div class="container mx-auto px-6">
+            <div class="text-center mb-16 reveal">
+                <h2 class="text-3xl md:text-5xl font-bold mb-4">لماذا تختار نظامنا؟</h2>
+                <div class="h-1.5 w-24 bg-blue-600 mx-auto rounded-full"></div>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-8">
+                <!-- Feature 1 -->
+                <div class="glass-card p-8 rounded-3xl reveal">
+                    <div class="w-14 h-14 bg-blue-600/20 rounded-2xl flex items-center justify-center mb-6">
+                        <i class="fa-solid fa-bolt text-blue-500 text-2xl"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-4">كشف فوري (Real-time)</h3>
+                    <p class="text-gray-400 leading-relaxed">
+                        معالجة مباشرة لتدفق الفيديو من الكاميرات وتحليل كل إطار للكشف عن المخالفات فور وقوعها.
+                    </p>
+                </div>
+
+                <!-- Feature 2 -->
+                <div class="glass-card p-8 rounded-3xl reveal" style="transition-delay: 0.1s">
+                    <div class="w-14 h-14 bg-orange-600/20 rounded-2xl flex items-center justify-center mb-6">
+                        <i class="fa-solid fa-triangle-exclamation text-orange-500 text-2xl"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-4">نظام تنبيهات ذكي</h3>
+                    <p class="text-gray-400 leading-relaxed">
+                        إصدار تنبيهات بصرية وصوتية عند رصد أي عامل لا يرتدي الخوذة أو السترة المطلوبة.
+                    </p>
+                </div>
+
+                <!-- Feature 3 -->
+                <div class="glass-card p-8 rounded-3xl reveal" style="transition-delay: 0.2s">
+                    <div class="w-14 h-14 bg-green-600/20 rounded-2xl flex items-center justify-center mb-6">
+                        <i class="fa-solid fa-file-csv text-green-500 text-2xl"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-4">تقارير المخالفات</h3>
+                    <p class="text-gray-400 leading-relaxed">
+                        أتمتة عملية تسجيل المخالفات في ملفات CSV مفصلة تشمل الوقت، النوع، وعدد العمال.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Tech Stack -->
+    <section id="tech" class="py-24">
+        <div class="container mx-auto px-6 text-center">
+            <h2 class="text-3xl md:text-5xl font-bold mb-12 reveal">التقنيات المستخدمة</h2>
+            <div class="flex flex-wrap justify-center gap-6 reveal">
+                <div class="px-8 py-4 glass-card rounded-2xl font-bold text-lg en">Python</div>
+                <div class="px-8 py-4 glass-card rounded-2xl font-bold text-lg en">YOLOv8</div>
+                <div class="px-8 py-4 glass-card rounded-2xl font-bold text-lg en">Flask</div>
+                <div class="px-8 py-4 glass-card rounded-2xl font-bold text-lg en">OpenCV</div>
+                <div class="px-8 py-4 glass-card rounded-2xl font-bold text-lg en">Tailwind CSS</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="py-12 border-t border-gray-800 text-center">
+        <div class="container mx-auto px-6">
+            <div class="flex items-center justify-center gap-3 mb-6">
+                <i class="fa-solid fa-shield-halved text-blue-500 text-2xl"></i>
+                <span class="text-2xl font-bold">PPE Vision</span>
+            </div>
+            <p class="text-gray-500 mb-8 max-w-md mx-auto">
+                نحو بيئة عمل أكثر أماناً باستخدام تقنيات الذكاء الاصطناعي والرؤية الحاسوبية.
+            </p>
+            <div class="text-sm text-gray-600 en">
+                &copy; 2026 PPE Vision System. Built with <i class="fa-solid fa-heart text-red-500 mx-1"></i> for Safety.
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Reveal animations on scroll
+        function reveal() {
+            var reveals = document.querySelectorAll(".reveal");
+            for (var i = 0; i < reveals.length; i++) {
+                var windowHeight = window.innerHeight;
+                var elementTop = reveals[i].getBoundingClientRect().top;
+                var elementVisible = 150;
+                if (elementTop < windowHeight - elementVisible) {
+                    reveals[i].classList.add("active");
+                }
+            }
+        }
+
+        window.addEventListener("scroll", reveal);
+        // Initial check
+        reveal();
+
+        // Smooth scroll for anchors
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enterprise PPE Monitor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+        }
+
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .status-safe {
+            color: #22c55e;
+            text-shadow: 0 0 10px rgba(34, 197, 94, 0.5);
+        }
+
+        .status-critical {
+            color: #ef4444;
+            text-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+        }
+
+        .status-standby {
+            color: #94a3b8;
+        }
+
+        .pulse-critical {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
+            }
+
+            70% {
+                box-shadow: 0 0 0 15px rgba(239, 68, 68, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+            }
+        }
+    </style>
+</head>
+
+<body class="min-h-screen flex flex-col">
+    <!-- Header -->
+    <header class="glass-panel p-4 sticky top-0 z-50 shadow-lg">
+        <div class="container mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <a href="/" class="hover:opacity-80 transition-opacity">
+                    <i class="fa-solid fa-house text-gray-400 text-xl mr-4"></i>
+                </a>
+                <i class="fa-solid fa-shield-halved text-blue-500 text-2xl"></i>
+                <h1 class="text-xl font-bold tracking-wide">PPE <span class="text-blue-500">Monitor</span></h1>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="relative flex h-3 w-3">
+                    <span
+                        class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                </span>
+                <span class="text-sm text-gray-400 font-medium tracking-wider">LIVE SYSTEM</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto p-4 flex-grow flex flex-col lg:flex-row gap-6 mt-6">
+
+        <!-- Video Stream Section -->
+        <div class="flex-grow flex flex-col gap-4 w-full lg:w-2/3">
+            <div class="glass-panel rounded-2xl overflow-hidden relative shadow-2xl" id="video-container">
+                <!-- Video Feed -->
+                <img src="/video_feed" alt="Live Feed" class="w-full h-auto object-cover rounded-xl"
+                    style="min-height: 480px; background: #000;">
+
+                <!-- Status Overlay on Video -->
+                <div
+                    class="absolute top-4 left-4 bg-black/60 backdrop-blur-md px-4 py-2 rounded-lg border border-gray-600 flex items-center gap-2">
+                    <i id="status-icon" class="fa-solid fa-circle-check status-safe"></i>
+                    <span id="status-text" class="font-bold status-safe tracking-wider">SAFE</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard Widgets -->
+        <div class="w-full lg:w-1/3 flex flex-col gap-4">
+
+            <!-- Global Status Widget -->
+            <div class="glass-panel p-6 rounded-2xl flex flex-col items-center justify-center text-center shadow-lg transition-all border-2 border-transparent"
+                id="alert-card">
+                <h2 class="text-gray-400 text-sm font-semibold uppercase tracking-widest mb-2">System Status</h2>
+                <div id="violation-number" class="text-6xl font-bold text-green-500 mb-2">0</div>
+                <div id="violation-label" class="text-lg font-medium text-gray-300">Violations Detected</div>
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="grid grid-cols-2 gap-4">
+                <!-- Workers -->
+                <div
+                    class="glass-panel p-5 rounded-2xl flex flex-col items-center shadow-lg border-t-2 border-blue-500">
+                    <i class="fa-solid fa-users text-blue-400 text-2xl mb-2"></i>
+                    <span class="text-gray-400 text-xs font-semibold uppercase">Workers</span>
+                    <span id="workers-count" class="text-3xl font-bold mt-1">0</span>
+                </div>
+                <!-- Helmets -->
+                <div
+                    class="glass-panel p-5 rounded-2xl flex flex-col items-center shadow-lg border-t-2 border-green-500">
+                    <i class="fa-solid fa-hard-hat text-green-400 text-2xl mb-2"></i>
+                    <span class="text-gray-400 text-xs font-semibold uppercase">Helmets</span>
+                    <span id="helmets-count" class="text-3xl font-bold mt-1">0</span>
+                </div>
+                <!-- Vests -->
+                <div
+                    class="glass-panel p-5 rounded-2xl flex flex-col items-center shadow-lg border-t-2 border-yellow-500">
+                    <i class="fa-solid fa-vest text-yellow-400 text-2xl mb-2"></i>
+                    <span class="text-gray-400 text-xs font-semibold uppercase">Vests</span>
+                    <span id="vests-count" class="text-3xl font-bold mt-1">0</span>
+                </div>
+                <!-- Safety Score -->
+                <div
+                    class="glass-panel p-5 rounded-2xl flex flex-col items-center shadow-lg border-t-2 border-purple-500">
+                    <i class="fa-solid fa-percent text-purple-400 text-2xl mb-2"></i>
+                    <span class="text-gray-400 text-xs font-semibold uppercase">Compliance</span>
+                    <span id="compliance-score" class="text-3xl font-bold mt-1">100%</span>
+                </div>
+            </div>
+
+            <!-- Log Output -->
+            <div class="glass-panel p-4 rounded-2xl flex-grow shadow-lg overflow-hidden flex flex-col"
+                style="min-height: 200px;">
+                <h3
+                    class="text-gray-400 text-sm font-semibold uppercase tracking-widest mb-3 border-b border-gray-700 pb-2">
+                    Recent Logs</h3>
+                <div id="log-container"
+                    class="flex-grow overflow-y-auto text-xs font-mono space-y-2 max-h-48 text-gray-300 pr-2">
+                    <div class="text-green-400">[SYSTEM] Initialization complete. Server running on localhost.</div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        function updateStats() {
+            fetch('/stats')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('workers-count').innerText = data.workers;
+                    document.getElementById('helmets-count').innerText = data.helmets;
+                    document.getElementById('vests-count').innerText = data.vests;
+                    document.getElementById('violation-number').innerText = data.violations;
+
+                    let compliance = 100;
+                    if (data.workers > 0) {
+                        let total_expected = data.workers * 2; // helmet + vest
+                        let total_actual = data.helmets + data.vests;
+                        compliance = Math.round((total_actual / total_expected) * 100);
+                        if (compliance > 100) compliance = 100;
+                    } else {
+                        compliance = 100;
+                    }
+                    document.getElementById('compliance-score').innerText = compliance + "%";
+
+                    // UI Reactions
+                    let statusIcon = document.getElementById('status-icon');
+                    let statusText = document.getElementById('status-text');
+                    let alertCard = document.getElementById('alert-card');
+                    let violationNumber = document.getElementById('violation-number');
+                    let videoContainer = document.getElementById('video-container');
+
+                    if (data.status === "CRITICAL") {
+                        statusText.innerText = "CRITICAL ALERT";
+                        statusText.className = "font-bold status-critical tracking-wider";
+                        statusIcon.className = "fa-solid fa-triangle-exclamation status-critical";
+
+                        alertCard.style.borderColor = "rgba(239, 68, 68, 0.5)";
+                        violationNumber.className = "text-6xl font-bold text-red-500 mb-2";
+                        videoContainer.classList.add("pulse-critical");
+
+                        addLog(`[CRITICAL] ${data.violations} violations detected!`, "text-red-400");
+                    } else if (data.status === "SAFE") {
+                        statusText.innerText = "SAFE";
+                        statusText.className = "font-bold status-safe tracking-wider";
+                        statusIcon.className = "fa-solid fa-circle-check status-safe";
+
+                        alertCard.style.borderColor = "transparent";
+                        violationNumber.className = "text-6xl font-bold text-green-500 mb-2";
+                        videoContainer.classList.remove("pulse-critical");
+                    } else {
+                        statusText.innerText = "STANDBY";
+                        statusText.className = "font-bold status-standby tracking-wider";
+                        statusIcon.className = "fa-solid fa-power-off status-standby";
+
+                        alertCard.style.borderColor = "transparent";
+                        violationNumber.className = "text-6xl font-bold text-gray-500 mb-2";
+                        videoContainer.classList.remove("pulse-critical");
+                    }
+                })
+                .catch(err => console.error("Could not fetch stats:", err));
+        }
+
+        function addLog(msg, colorClass) {
+            let container = document.getElementById('log-container');
+            let time = new Date().toLocaleTimeString();
+            let lastLog = container.lastElementChild;
+
+            // Prevent spamming the exact same message
+            if (lastLog && lastLog.innerText.includes(msg)) return;
+
+            let logDiv = document.createElement('div');
+            logDiv.className = colorClass;
+            logDiv.innerText = `[${time}] ${msg}`;
+            container.appendChild(logDiv);
+
+            // auto scroll
+            container.scrollTop = container.scrollHeight;
+
+            // Limit to 20 logs
+            if (container.children.length > 20) {
+                container.removeChild(container.firstElementChild);
+            }
+        }
+
+        // Fetch stats every 500ms
+        setInterval(updateStats, 500);
+    </script>
+</body>
+
+</html>
