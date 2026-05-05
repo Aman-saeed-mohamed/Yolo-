@@ -44,6 +44,16 @@ dataset/
 safety_report.csv
 
 # -----------------------
+# Auto-downloaded models (downloaded at runtime, no need to commit)
+# -----------------------
+yolov8n.pt
+
+# -----------------------
+# Temporary test images
+# -----------------------
+test_img.jpg
+
+# -----------------------
 # Debug / scratch files
 # -----------------------
 debug_test.py

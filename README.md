@@ -10,22 +10,37 @@
 Workplace accidents in construction and industrial environments result in severe injuries and massive financial losses. This system introduces an **enterprise-grade, real-time AI monitoring solution** that:
 
 - 📷 Captures a **live camera feed** directly on a local machine (no cloud, no internet required)
-- 🧠 Runs **YOLOv8 inference** to detect workers and their safety equipment every frame
+- 🧠 Runs a **Dual-Model YOLOv8 inference pipeline** to detect workers and their safety equipment every frame
 - ⚠️ Uses a **Mathematical Logic Layer** to deduce PPE violations without needing a "no-helmet" class
-- 📊 Displays a live **Heads-Up Display (HUD)** with risk status, worker counts, and alerts
+- 📊 Displays a live **Heads-Up Display (HUD)** with risk status, worker counts, FPS, and alerts
 - 📝 **Auto-logs all violations** to a timestamped CSV file for management reporting
 
 ---
 
-## 🧠 How It Works — The Logic Layer
+## 🧠 Dual-Model Architecture
 
-The model detects **3 core classes only**:
+The system uses **two YOLOv8 models running in parallel** on every frame:
 
-| ID | Class | Color on Screen |
-|----|-------|----------------|
-| 0  | `person` | 🔵 Blue-Orange |
-| 1  | `helmet` | 🟢 Green |
-| 2  | `vest`   | 🩵 Cyan-Teal |
+| Model | Source | Responsibility |
+|-------|--------|----------------|
+| `yolov8n.pt` | Official Ultralytics (COCO) | Detects **persons** — highly reliable (87%+ confidence) |
+| `best.pt` | Custom-trained | Detects **helmets** and **vests** |
+
+> **Why two models?** The custom `best.pt` model is specialized for PPE equipment but proved unreliable for person detection in varied environments. `yolov8n.pt` solves this with industry-standard accuracy.
+
+---
+
+## 🔍 Detection Classes & Colors
+
+| Model | Class | Box Color |
+|-------|-------|-----------|
+| `yolov8n.pt` | `person` | 🟠 Orange |
+| `best.pt` | `helmet` | 🟢 Green |
+| `best.pt` | `vest` | 🩵 Cyan-Teal |
+
+---
+
+## 🧮 Violation Logic Layer
 
 Violations are deduced mathematically — no extra training needed:
 
@@ -35,16 +50,16 @@ missing_vests    = max(0, person_count - vest_count)
 total_violations = missing_helmets + missing_vests
 ```
 
-This optimization makes the system **faster** and proves **deep engineering problem-solving**.
+This approach is **faster** and proves **deep engineering problem-solving** — no need to train separate "no-helmet" or "no-vest" classes.
 
 ---
 
-## 🖥️ Risk States
+## 🚦 Risk States
 
 | State | Trigger | HUD Color | Effect |
 |-------|---------|-----------|--------|
 | **STANDBY** | No workers detected | ⚪ Grey | Monitoring active message |
-| **SAFE** | All workers have PPE | 🟢 Green | Full compliance message |
+| **SAFE** | All workers have full PPE | 🟢 Green | Full compliance message |
 | **CRITICAL** | Any PPE missing | 🔴 Red | Flashing red border + violation count + CSV log |
 
 ---
@@ -52,18 +67,22 @@ This optimization makes the system **faster** and proves **deep engineering prob
 ## 📁 Project Structure
 
 ```
-Yolo/
-├── live_demo.py          # 🎬 Main stage demo — pure OpenCV, crash-proof
-├── app.py                # 🌐 Flask web dashboard (optional)
-├── templates/
-│   ├── index.html        # Landing page
-│   └── monitor.html      # Live monitoring dashboard
-├── static/               # CSS / JS assets
-├── best.pt               # 🧠 Trained YOLOv8 model weights
-├── requirements.txt      # Python dependencies
-├── .gitignore
-└── README.md
+Yolo--main/
+│
+├── 📂 Web_Version_Archive/        ← Flask web dashboard (archived)
+│   ├── app.py
+│   └── templates/
+│       ├── index.html
+│       └── monitor.html
+│
+├── 🧠 best.pt                     ← Custom YOLOv8 model (helmet + vest)
+├── 🎬 live_demo.py                ← Main entry point — OpenCV live demo
+├── 📄 README.md
+├── 📋 requirements.txt
+└── 📊 safety_report.csv           ← Auto-generated violation log
 ```
+
+> `yolov8n.pt` is downloaded automatically on first run from Ultralytics servers.
 
 ---
 
@@ -88,18 +107,19 @@ pip install -r requirements.txt
 python live_demo.py
 ```
 
+- On first run, `yolov8n.pt` (~6MB) downloads automatically.
 - Press **`Q`** or **`ESC`** to exit cleanly.
 - Violations are automatically saved to `safety_report.csv`.
 
 ---
 
-## 📊 Automated Report (safety_report.csv)
+## 📊 Automated Report (`safety_report.csv`)
 
 Every CRITICAL event is instantly logged:
 
 | Timestamp | Workers | Helmets | Vests | Violations | Risk Status |
 |-----------|---------|---------|-------|------------|-------------|
-| 2026-05-05 10:24:36 | 3 | 1 | 2 | 2 | CRITICAL |
+| 2026-05-05 10:24:36 | 2 | 1 | 2 | 1 | CRITICAL |
 
 ---
 
@@ -108,7 +128,6 @@ Every CRITICAL event is instantly logged:
 ```
 ultralytics
 opencv-python
-flask
 ```
 
 Install all with:
@@ -126,14 +145,15 @@ pip install -r requirements.txt
 | ✅ Instant violation detection | Prevents accidents before they happen |
 | ✅ Automated compliance reports | Eliminates manual paperwork |
 | ✅ Runs 100% locally | Zero cloud costs, full data privacy |
+| ✅ Dual-model pipeline | Maximum accuracy for both persons and PPE |
 | ✅ Works on standard laptops | No specialized hardware needed |
 
 ---
 
 ## 👤 Authors
 
-**Aman Saeed Mohamed** — AI Developer & Data Analyst
-**Mustapha Ali Gumel** — Team Member
+**Aman Saeed Mohamed** — AI Developer & Data Analyst  
+**Mustapha Ali Gumel** — Team Member  
 **Mentor: Akile ODAY**
 
 🔗 [GitHub](https://github.com/Aman-saeed-mohamed) · [LinkedIn](https://www.linkedin.com/in/aman-saeed-mo/)
