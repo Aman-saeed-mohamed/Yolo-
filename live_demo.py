@@ -119,23 +119,59 @@ def draw_label(frame, text, x1, y1, bg_color, text_color=None):
     cv2.rectangle(frame, (x1, y1 - lh - 8), (x1 + lw + 6, y1), bg_color, -1)
     cv2.putText(frame, text, (x1 + 3, y1 - 4), FONT_SMALL, 0.5, text_color, 1, cv2.LINE_AA)
 
+def overlaps_with_person(hx1, hy1, hx2, hy2, person_boxes,
+                         min_iou=0.10, zone='full'):
+    """
+    Returns the index of the matching person, or -1 if none.
+
+    zone='head'  → additionally checks that the helmet center is in the
+                   top 30% of the person box (head region).
+    zone='torso' → center must be in the 25%-75% band.
+    zone='full'  → just overlap check, no zone restriction.
+    """
+    hcx = (hx1 + hx2) // 2   # helmet center X
+    hcy = (hy1 + hy2) // 2   # helmet center Y
+    h_area = max(1, (hx2 - hx1) * (hy2 - hy1))
+
+    for idx, (px1, py1, px2, py2) in enumerate(person_boxes):
+        # ── overlap check ────────────────────────────────────────────────
+        ix1 = max(hx1, px1);  iy1 = max(hy1, py1)
+        ix2 = min(hx2, px2);  iy2 = min(hy2, py2)
+        if ix2 <= ix1 or iy2 <= iy1:
+            continue
+        inter = (ix2 - ix1) * (iy2 - iy1)
+        if inter / h_area < min_iou:
+            continue
+
+        # ── zone check ───────────────────────────────────────────────────
+        ph = max(1, py2 - py1)
+        rel_y = (hcy - py1) / ph   # 0.0 = top of person, 1.0 = bottom
+
+        if zone == 'head'  and rel_y > 0.30:
+            continue   # helmet center is NOT in head zone → skip
+        if zone == 'torso' and not (0.25 <= rel_y <= 0.75):
+            continue   # not in torso zone → skip
+
+        return idx
+    return -1
+
 def detect_vest_hsv(frame, person_boxes):
     """
-    Returns a set of person indices that are wearing a Hi-Vis vest.
-    Uses HSV color detection on the torso region of each person box.
+    Returns a set of person indices wearing a Hi-Vis vest.
+    Checks only the inner torso zone to avoid background interference.
     """
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
-    # Hi-Vis Yellow-Green (H 22-95, broad to catch lime/chartreuse/yellow)
-    m1 = cv2.inRange(hsv, (22,  55, 55), (95, 255, 255))
-    # Orange  (H 5-22)
-    m2 = cv2.inRange(hsv, (5,   70, 70), (22, 255, 255))
-    # Red-orange wrap-around (H 0-5 and 170-180)
-    m3 = cv2.inRange(hsv, (0,   70, 70), (5,  255, 255))
-    m4 = cv2.inRange(hsv, (170, 70, 70), (180,255, 255))
+    # Hi-Vis Yellow-Green: high saturation + high brightness (fluorescent)
+    # S >= 120, V >= 120 to exclude dull/dark backgrounds
+    m1 = cv2.inRange(hsv, (22, 120, 120), (95, 255, 255))   # Yellow / Lime / Green
+    # Orange: also fluorescent safety vests
+    m2 = cv2.inRange(hsv, (5,  120, 120), (22, 255, 255))   # Orange
 
-    vest_mask = cv2.bitwise_or(m1, cv2.bitwise_or(m2, cv2.bitwise_or(m3, m4)))
-    # Remove noise
+    # NOTE: Red range removed — causes false positives with red curtains/walls.
+    # Safety vests are almost never pure red; they are yellow-green or orange.
+
+    vest_mask = cv2.bitwise_or(m1, m2)
     vest_mask = cv2.morphologyEx(vest_mask, cv2.MORPH_OPEN, VEST_KERNEL)
 
     wearing = set()
@@ -144,14 +180,20 @@ def detect_vest_hsv(frame, person_boxes):
     for idx, (px1, py1, px2, py2) in enumerate(person_boxes):
         ph = py2 - py1
         pw = px2 - px1
-        if ph < 60 or pw < 40:
-            continue   # skip tiny/incomplete boxes
+        if ph < 80 or pw < 50:
+            continue
 
-        # Torso zone: from 25% → 100% of person height
-        tz1 = max(0,  py1 + ph // 4)
-        tz2 = min(fh, py2)
-        cx1 = max(0,  px1)
-        cx2 = min(fw, px2)
+        # Strict torso zone: 30% → 70% of person height
+        tz1 = max(0,  py1 + int(ph * 0.30))
+        tz2 = min(fh, py1 + int(ph * 0.70))
+
+        # Horizontal margin: use inner 70% of person width to avoid background
+        margin = int(pw * 0.15)
+        cx1 = max(0,  px1 + margin)
+        cx2 = min(fw, px2 - margin)
+
+        if cx2 <= cx1:
+            continue
 
         crop = vest_mask[tz1:tz2, cx1:cx2]
         if crop.size == 0:
@@ -160,10 +202,12 @@ def detect_vest_hsv(frame, person_boxes):
         vp    = cv2.countNonZero(crop)
         ratio = vp / crop.size
 
-        if ratio > VEST_RATIO_MIN and vp > VEST_PIXEL_MIN:
+        # Requires >15% of inner torso is vest-colored AND at least 1000 pixels
+        if ratio > 0.15 and vp > 1000:
             wearing.add(idx)
 
     return wearing, vest_mask
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 #  MAIN LOOP
@@ -213,21 +257,31 @@ try:
             cv2.rectangle(frame, (x1, y1), (x2, y2), COLOR_PERSON, 2, cv2.LINE_AA)
             draw_label(frame, f"person  {conf_score:.0%}", x1, y1, COLOR_PERSON)
 
-        # ── HELMETS ──────────────────────────────────────────────────────
+        # ── HELMETS — only count if on a detected person ─────────────────
+        persons_with_helmet = set()
+
         for box in helmet_results[0].boxes:
             cls_id     = int(box.cls[0])
             class_name = HELMET_CLASSES.get(cls_id, "unknown")
             conf_score = float(box.conf[0])
-            x1, y1, x2, y2 = map(int, box.xyxy[0])
+            hx1, hy1, hx2, hy2 = map(int, box.xyxy[0])
+
+            # Helmet must overlap with a person AND be in the HEAD zone (top 30%)
+            person_idx = overlaps_with_person(hx1, hy1, hx2, hy2, person_boxes,
+                                              min_iou=0.10, zone='head')
+
+            if person_idx == -1:
+                continue   # helmet/NO-Hardhat not on any person — ignore
 
             if class_name == "Hardhat":
                 helmet_count += 1
-                cv2.rectangle(frame, (x1, y1), (x2, y2), COLOR_HELMET, 2, cv2.LINE_AA)
-                draw_label(frame, f"Helmet  {conf_score:.0%}", x1, y1, COLOR_HELMET)
+                persons_with_helmet.add(person_idx)
+                cv2.rectangle(frame, (hx1, hy1), (hx2, hy2), COLOR_HELMET, 2, cv2.LINE_AA)
+                draw_label(frame, f"Helmet  {conf_score:.0%}", hx1, hy1, COLOR_HELMET)
 
             elif class_name == "NO-Hardhat":
-                cv2.rectangle(frame, (x1, y1), (x2, y2), COLOR_CRITICAL, 3, cv2.LINE_AA)
-                draw_label(frame, f"NO HELMET  {conf_score:.0%}", x1, y1,
+                cv2.rectangle(frame, (hx1, hy1), (hx2, hy2), COLOR_CRITICAL, 3, cv2.LINE_AA)
+                draw_label(frame, f"NO HELMET  {conf_score:.0%}", hx1, hy1,
                            COLOR_CRITICAL, COLOR_WHITE)
 
         # ── VEST DETECTION (HSV) ─────────────────────────────────────────
