@@ -173,7 +173,10 @@ session_violations = 0
 fps_timer          = time.time()
 fps_value          = 0.0
 frame_count        = 0
-window_set         = False
+
+# Create fullscreen window BEFORE the loop (must be before first imshow on Windows)
+cv2.namedWindow(WINDOW_NAME, cv2.WINDOW_NORMAL)
+cv2.setWindowProperty(WINDOW_NAME, cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
 
 try:
     while True:
@@ -308,12 +311,6 @@ try:
 
         # ── DISPLAY ──────────────────────────────────────────────────────
         cv2.imshow(WINDOW_NAME, frame)
-
-        # Go fullscreen after the first successful frame
-        if not window_set:
-            cv2.namedWindow(WINDOW_NAME, cv2.WINDOW_NORMAL)
-            cv2.setWindowProperty(WINDOW_NAME, cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
-            window_set = True
 
         if cv2.waitKey(1) & 0xFF in (ord('q'), ord('Q'), 27):
             break
